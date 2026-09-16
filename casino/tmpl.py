@@ -21,7 +21,7 @@ def gamble(amount, number):
     p.recvline()
     return p.recvline()
 
-print(gamble(1, 1))
+# Negative numbers go brr
+print(gamble(-10000000000, 1))
 print(buy())
-
-
+p.interactive()
